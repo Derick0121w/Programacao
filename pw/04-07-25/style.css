@@ -1,0 +1,39 @@
+* {margin:0; padding:0; box-sizing: border-box;}
+body {height: 100%; min-height: 100vh; width: 100%;
+display: flex; flex-direction: column;
+justify-content: start; align-items: center; gap:10px;
+padding-top: 100px;
+}
+form { display: flex; gap: 5px; width: 400px; }
+form>input { padding: 10px; flex-grow: 1; }
+input::placeholder {font-style: italic;}
+form>button {
+    padding: 8px; border-radius: 6px;
+    background-color: green;
+    color: white; font-weight: bold; border-width: 0; 
+    cursor: pointer;
+}
+form>button:disabled {background-color: gray; 
+    cursor:not-allowed}
+ul {display:flex; flex-direction: column;
+list-style-type: none; width: 400px; gap: 5px}
+ul > li {padding: 6px; border: solid 1px gainsboro;
+display: flex; align-items: center; gap:10px;}
+ul > li > span, ul > li > input { flex-grow: 1;}
+
+#quantidade { font-style: italic; color: grey; width: 400px;}
+
+.btn-remover {
+    display: none; border-radius: 20px; color: red;
+    font-weight: bold; background-color: transparent;
+    font-size: 1rem; border-width: 0; cursor: pointer
+}
+li:hover > .btn-remover, li:hover > .btn-editar {
+    display: inline;
+}
+
+.btn-editar {
+    display: none; border-radius: 20px; color: orange;
+    font-weight: bold;  background-color: transparent;
+    font-size: 1rem; border-width: 0; cursor: pointer
+}
