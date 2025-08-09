@@ -1,0 +1,13 @@
+* {margin: 0;padding: 0;box-sizing: border-box;}
+body{background-color: brown; height: 100%;width: 100vw;min-height: 100vh;}
+table{background-color: antiquewhite; display: inline-block; border-radius: 7px;}
+td,th {color: brown;}
+img{width: 22px; height: 13px;}
+a{-bottom: solid 1px rgb(194, 153, 113); text-decoration: none;color: red;}
+a:hover{color: darkgrey;}
+div{margin: auto; width: 435px;}
+div > h1{text-align: center;}
+thead th{border-bottom: solid 1px rgb(194, 153, 113);}
+h1{box-shadow: inset 1px 1px 20px 0px rgba(0, 0, 0, 0.452);}
+
+

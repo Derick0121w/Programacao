@@ -1,0 +1,91 @@
+* {
+    margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;
+}
+body {
+    width: 100%;height: 100%;min-height: 100vh;display: flex;
+    flex-wrap: wrap;
+}
+nav {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+header i {
+    font-size: 4em;
+}
+nav > div{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    margin-left: 30px;
+    margin-bottom: 25px;
+    padding: 3px;
+}
+nav > div:hover {
+    color: red;
+    border-bottom: 4px solid red;
+}
+
+header {
+    width: 100%;
+}
+.linha {
+    flex: 1;
+    border-bottom: 2px solid red;
+    margin: 0 10px;
+    height: 0;
+}
+section {
+    display: flex;
+    justify-content: space-between;
+    color: red;
+    align-items: center;
+    text-align: center;
+    flex-shrink: 4;
+    flex-wrap: nowrap;
+}
+section p {
+    color: lightslategray;
+    font-size: 15px;
+    margin-top: 10px;
+}
+#pizza {
+    padding-top: 20px;
+}
+section i {
+    margin-right: 8px;
+}
+main {
+    display: flex;
+    flex-wrap: wrap;
+    color: lightslategrey;
+    justify-content: space-between;
+}
+main > div {
+    display: flex;
+    flex-basis: 48%;
+    flex-shrink: 1;
+    align-items: center;
+    gap: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+h6 {font-size: 18px;
+    font-weight: bolder;
+    color: black;
+    margin-bottom: 4px;
+}
+img {width: 100px;
+    height: 105px;
+    display: inline-block;
+}
+span {
+    font-size: 16px;
+    font-weight: bold;
+    color: darkred;
+    margin-top: 5px;
+    display: block;
+}

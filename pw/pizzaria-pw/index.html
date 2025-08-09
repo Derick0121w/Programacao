@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzaria</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="shortcut icon" href="data:image/png;base64,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" type="image/x-icon">
+</head>
+<body>
+        <header>
+                <nav>
+                        <div><i class="fa-solid fa-pizza-slice fa-3x"></i> Pizza</div>
+                        <div><i class="fa-solid fa-burger fa-3x"></i> Burgers</div>
+                        <div><i class="fa-solid fa-cookie-bite fa-3x"></i> Snacks & Sides</div>
+                        <div><i class="fa-solid fa-bowl-food fa-3x"></i> Salads</div>
+                        <div><i class="fa-solid fa-wine-glass fa-3x"></i> Drinks</div>
+                </nav>
+
+                <section>
+                        <div class="linha"></div>
+                        <div id="pizza"><i class="fa-solid fa-pizza-slice fa-2x"></i>Pizza <p>32cm/48cm</p> </div>
+                        <div class="linha"></div>
+                </section>
+        </header>
+        <main>
+                <div>
+                        <img src="img/pizza.png" alt=""><h6>La Rossa</h6>
+                        Tomato sauce, garlic, basil (no cheese)
+                        <span>$15/$24</span>
+                </div>
+                <div>
+                        <img src="img/pizza.png" alt=""> <h6>Margherita</h6>
+                        Tomato sauce, fresh mozzarella, basil, sea salt, California extra virgin olive oil
+                        <span>$17/$26</span>
+                </div>
+                <div>
+                        <img src="img/pizza.png" alt=""><h6>Burrata</h6>
+                        Tomato Sauce, burrata, garlic, basil
+                        <span>$18/$28</span>
+                </div>
+                <div>
+                        <img src="img/pizza.png" alt=""><h6>Panna</h6>
+                        Tomato sauce, fresh mozzarella, grass-fed PA cow's cream, arugula, parmigiano
+                        <span>$18/$28</span>
+                </div>
+                <div>
+                        <img src="img/pizza.png" alt=""><h6>Jersey Margherita</h6>
+                        Crushed NJ tomatoes, Jersey Giri mozzarella, basil
+                        <span>$19/$30</span>
+                </div>
+                <div>
+                        <img src="img/pizza.png" alt=""><h6>Bosco</h6>
+                        Tomato sauce, fresh mozzarella, cremini mushrooms, fontina
+                        <span>$17/$25</span>
+                </div>
+        </main>
+</body>
+</html>

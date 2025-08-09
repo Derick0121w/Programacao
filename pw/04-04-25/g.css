@@ -1,0 +1,5 @@
+* {margin: 0;padding: 0;box-sizing: border-box;}
+body{background-color: brown; height: 100%;width: 100vw;min-height: 100vh;}
+table{background-color: antiquewhite; display: inline-block; border-radius: 7px;}
+td,th {color: brown;}
+img{width: 22px; height: 13px;}
