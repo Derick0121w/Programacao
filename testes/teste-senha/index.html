@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Validador de Senha (offline)</title>
+<style>
+  body{font-family:Inter,system-ui,Arial;margin:24px;background:#f6f7fb;color:#0b1220}
+  .card{max-width:820px;margin:0 auto;background:white;padding:20px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,.08)}
+  h1{margin:0 0 12px;font-size:20px}
+  label{display:block;margin-top:12px;font-weight:600}
+  input[type=password]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ee;font-size:16px}
+  .row{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .box{flex:1;min-width:220px;background:#fbfdff;padding:12px;border-radius:8px;border:1px solid #eef2ff}
+  pre{white-space:pre-wrap;font-family:inherit}
+  .good{color: #064e3b}
+  .warn{color:#b45309}
+  .bad{color:#991b1b}
+  button{margin-top:8px;padding:8px 12px;border-radius:8px;border:0;background:#4f46e5;color:white;cursor:pointer}
+  small{color:#6b7280}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Verificador local de força de senha</h1>
+  <p class="small">Cole sua senha abaixo (rodando localmente). Recomendo usar uma senha de teste ou versão modificada — não cole senhas reais se não se sentir confortável.</p>
+
+  <label for="pwd">Senha</label>
+  <input id="pwd" type="password" placeholder="Ex: S@ndy7402$" />
+  <div class="row">
+    <div class="box">
+      <strong>Resumo</strong>
+      <div id="summary">—</div>
+      <button id="checkBtn">Analisar agora</button>
+    </div>
+    <div class="box">
+      <strong>Detalhes técnicos</strong>
+      <pre id="details">—</pre>
+    </div>
+  </div>
+
+  <div style="margin-top:12px">
+    <strong>Sugestões rápidas</strong>
+    <div id="advice">—</div>
+  </div>
+</div>
+
+<script>
+/* Validador local - roda completamente no seu navegador */
+const commonWords = [
+  'password','123456','qwerty','admin','login','welcome','sandy','senha','user','abc123',
+  'letmein','dragon','iloveyou','monkey','shadow','master','sunshine','flower'
+];
+// small wordlist to detect dictionary-like parts; você pode adicionar palavras
+
+const leetMap = { '4':'a', '@':'a', '3':'e', '1':'i', '!':'i', '0':'o', '$':'s', '5':'s', '7':'t', '+':'t' };
+
+function replaceLeet(s){
+  return s.split('').map(ch => leetMap[ch.toLowerCase()] || ch).join('');
+}
+
+function hasDictionaryPart(pwd){
+  const lower = pwd.toLowerCase();
+  const leet = replaceLeet(lower);
+  for(const w of commonWords){
+    if(lower.includes(w) || leet.includes(w)) return w;
+  }
+  return null;
+}
+
+function hasSequence(pwd, minLen=4){
+  // checa sequências numéricas ou alfabéticas ascendentes/descendentes
+  const s = pwd.toLowerCase();
+  const seqs = [];
+  function check(str){
+    let run = 1;
+    for(let i=1;i<str.length;i++){
+      if(str.charCodeAt(i) === str.charCodeAt(i-1)+1) run++; else run=1;
+      if(run>=minLen) return true;
+    }
+    run=1;
+    for(let i=1;i<str.length;i++){
+      if(str.charCodeAt(i) === str.charCodeAt(i-1)-1) run++; else run=1;
+      if(run>=minLen) return true;
+    }
+    return false;
+  }
+  // somente letras e dígitos (varre janelas)
+  const onlyAlphaNum = s.replace(/[^a-z0-9]/g,'');
+  if(onlyAlphaNum.length >= minLen && check(onlyAlphaNum)) return true;
+  return false;
+}
+
+function hasRepeated(pwd, threshold=4){
+  // sequência de mesmo caractere repetida
+  let run = 1;
+  for(let i=1;i<pwd.length;i++){
+    if(pwd[i] === pwd[i-1]) run++; else run=1;
+    if(run>=threshold) return true;
+  }
+  return false;
+}
+
+function hasDateLike(pwd){
+  // checa se aparece um ano comum 1900-2099 ou padrão ddmmyyyy/yyyymmdd (simplificado)
+  const m = pwd.match(/(19|20)\d{2}/);
+  if(m) return m[0];
+  const m2 = pwd.match(/\b\d{4}\b/);
+  if(m2) return m2[0];
+  return null;
+}
+
+function alphabetSize(pwd){
+  let size = 0;
+  if(/[a-z]/.test(pwd)) size += 26;
+  if(/[A-Z]/.test(pwd)) size += 26;
+  if(/[0-9]/.test(pwd)) size += 10;
+  if(/[^A-Za-z0-9]/.test(pwd)) {
+    // aproximação: símbolos imprimíveis (~32-33). usamos 33
+    size += 33;
+  }
+  if(size === 0) size = 1;
+  return size;
+}
+
+function bitsEntropy(pwd){
+  const alph = alphabetSize(pwd);
+  const bitsPerChar = Math.log2(alph);
+  const bits = bitsPerChar * pwd.length;
+  return { bits, bitsPerChar, alph };
+}
+
+function humanTime(sec){
+  if(!isFinite(sec) || sec > 1e50) return 'praticamente impossível';
+  if(sec < 1) return (sec*1000).toFixed(2) + ' ms';
+  const units = [
+    ['anos', 60*60*24*365],
+    ['dias', 60*60*24],
+    ['horas', 60*60],
+    ['minutos', 60],
+    ['segundos', 1]
+  ];
+  let out = [];
+  for(const [name, val] of units){
+    if(sec >= val){
+      const v = Math.floor(sec / val);
+      sec = sec % val;
+      out.push(v + ' ' + name);
+      if(out.length >= 2) break;
+    }
+  }
+  return out.join(', ');
+}
+
+function estimateBruteForceTime(bits){
+  // média de tentativas: 2^(bits-1) ~ 0.5 * 2^bits
+  const combos = Math.pow(2, bits - 1);
+  const speeds = {
+    '1k/sec': 1e3,
+    '1M/sec': 1e6,
+    '1G/sec': 1e9,
+    '100G/sec': 1e11
+  };
+  const times = {};
+  for(const k in speeds){
+    times[k] = combos / speeds[k];
+  }
+  return times;
+}
+
+function classify(bits, pwd){
+  // combinação de entropia e heurísticas
+  const warnings = [];
+  const dict = hasDictionaryPart(pwd);
+  if(dict) warnings.push('Contém palavra comum: ' + dict);
+  if(hasSequence(pwd)) warnings.push('Contém sequência (ex: abcd, 1234)');
+  if(hasRepeated(pwd)) warnings.push('Caracteres repetidos em sequência');
+  const date = hasDateLike(pwd);
+  if(date) warnings.push('Contém possível ano / data: ' + date);
+  if(pwd.length < 8) warnings.push('Curta (<8 caracteres). Prefira 12+');
+
+  let grade;
+  if(bits < 28) grade = 'Muito fraca';
+  else if(bits < 36) grade = 'Fraca';
+  else if(bits < 60) grade = 'Moderada';
+  else if(bits < 100) grade = 'Forte';
+  else grade = 'Muito forte';
+
+  // reduzir grade se há avisos pesados
+  if(grade === 'Forte' && warnings.length > 0) grade = 'Moderada';
+  if(grade === 'Moderada' && warnings.length > 1) grade = 'Fraca';
+  if(grade === 'Fraca' && warnings.length > 2) grade = 'Muito fraca';
+
+  return { grade, warnings };
+}
+
+function prettyNumber(n){
+  if(n < 1000) return String(Math.round(n));
+  return n.toLocaleString();
+}
+
+/* UI */
+const pwdEl = document.getElementById('pwd');
+const checkBtn = document.getElementById('checkBtn');
+const summaryEl = document.getElementById('summary');
+const detailsEl = document.getElementById('details');
+const adviceEl = document.getElementById('advice');
+
+function analyze(pwd){
+  if(!pwd) {
+    summaryEl.innerHTML = '<span class="warn">Digite uma senha para analisar.</span>';
+    detailsEl.textContent = '—';
+    adviceEl.textContent = '—';
+    return;
+  }
+
+  const { bits, bitsPerChar, alph } = bitsEntropy(pwd);
+  const est = estimateBruteForceTime(bits);
+  const cls = classify(bits, pwd);
+
+  // montar detalhes
+  let det = '';
+  det += `Comprimento: ${pwd.length} caracteres\n`;
+  det += `Alfabeto estimado: ${alph} símbolos (aprox.)\n`;
+  det += `Bits por caractere: ${bitsPerChar.toFixed(2)} bits\n`;
+  det += `Entropia total estimada: ${bits.toFixed(2)} bits\n\n`;
+
+  det += `Estimativa brute-force (média de tentativas ~ 2^(bits-1)):\n`;
+  for(const k in est){
+    det += `${k}: ${humanTime(est[k])}\n`;
+  }
+  det += '\nHeurísticas detectadas:\n';
+  const dict = hasDictionaryPart(pwd);
+  det += ` - Palavra comum detectada: ${dict ? dict : 'não detectada'}\n`;
+  det += ` - Sequência (abcd/1234): ${hasSequence(pwd) ? 'sim' : 'não'}\n`;
+  det += ` - Repetição de caracteres: ${hasRepeated(pwd) ? 'sim' : 'não'}\n`;
+  det += ` - Data/ano detectado: ${hasDateLike(pwd) ? hasDateLike(pwd) : 'não detectado'}\n`;
+
+  // summary
+  let color = 'good';
+  if(cls.grade === 'Muito fraca' || cls.grade === 'Fraca') color = 'bad';
+  else if(cls.grade === 'Moderada') color = 'warn';
+
+  summaryEl.innerHTML = `<div>Classificação: <strong class="${color}">${cls.grade}</strong></div>
+    <div style="margin-top:8px">Entropia: <strong>${bits.toFixed(2)} bits</strong></div>
+    <div style="margin-top:6px">Avisos: <strong>${cls.warnings.length}</strong></div>`;
+
+  detailsEl.textContent = det;
+
+  // conselho prático
+  const adv = [];
+  if(pwd.length < 12) adv.push('Aumente o comprimento para 12+ caracteres (comprimento é o fator mais importante).');
+  if(hasDictionaryPart(pwd)) adv.push('Evite palavras comuns, nomes ou combinações previsíveis (mesmo com substituições leet).');
+  if(hasSequence(pwd)) adv.push('Não use sequências como "abcd" ou "1234".');
+  if(hasRepeated(pwd)) adv.push('Evite repetições longas (ex: "aaaaaa").');
+  if(!(/[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd))) adv.push('Use mistura de maiúsculas, minúsculas, números e símbolos, mas isso não substitui comprimento nem evitar palavras de dicionário.');
+  adv.push('Para máxima segurança, use um password manager e gere senhas únicas por site ou use uma passphrase longa (4+ palavras aleatórias).');
+  adviceEl.innerHTML = adv.map(a => '• ' + a).join('<br>');
+
+  return { bits, est, cls };
+}
+
+checkBtn.addEventListener('click', ()=> analyze(pwdEl.value));
+
+// enter = analyze
+pwdEl.addEventListener('keydown', e => { if(e.key === 'Enter') analyze(pwdEl.value); });
+
+</script>
+</body>
+</html>

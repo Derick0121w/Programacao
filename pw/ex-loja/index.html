@@ -1,0 +1,269 @@
+<!-- LojaFake - Single-file HTML + Vanilla JavaScript (index.html) -->
+<!-- Uso: salve como index.html e abra no navegador. Não precisa de servidor, mas recomenda-se servir via local server para evitar CORS em alguns navegadores. -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LojaFake — Demo Profissional</title>
+  <style>
+    /* Reset simples */
+    :root{--bg:#f7fafc;--card:#fff;--muted:#6b7280;--accent:#4f46e5}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue";background:var(--bg);color:#111}
+    .container{max-width:1100px;margin:28px auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    .controls{display:flex;gap:12px;align-items:center}
+    .search{display:flex;align-items:center;background:#fff;padding:8px;border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .search input{border:0;outline:0;padding:6px 8px;width:220px}
+    select,input[type=number]{padding:8px;border-radius:8px;border:1px solid #e6e9ee}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:18px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(15,23,42,.06);display:flex;flex-direction:column}
+    .thumb{height:160px;display:flex;align-items:center;justify-content:center}
+    .thumb img{max-height:140px;max-width:100%;object-fit:contain}
+    .title{font-size:14px;font-weight:600;margin:8px 0;min-height:40px}
+    .desc{font-size:13px;color:var(--muted);flex:1}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .btn{background:var(--accent);color:white;padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(79,70,229,.12)}
+    .sidebar{position:fixed;right:18px;top:80px;width:340px;background:var(--card);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(2,6,23,.2)}
+    .cart-item{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    .cart-item img{width:56px;height:56px;object-fit:contain;border-radius:8px}
+    .small{font-size:13px;color:var(--muted)}
+    .badge{background:#ef4444;color:white;padding:4px 8px;border-radius:999px;font-size:12px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px}
+    @media (max-width:720px){.controls{flex-direction:column;align-items:flex-end}.search input{width:140px}.sidebar{position:fixed;left:12px;right:12px;top:unset;bottom:12px;width:auto}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">LF</div>
+        <div>
+          <div style="font-weight:700;font-size:18px">LojaFake</div>
+          <div class="small">Demo profissional usando FakeStore API</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search" role="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input id="q" placeholder="Procurar produto..." />
+        </div>
+
+        <select id="categorySelect" aria-label="Categoria"></select>
+        <select id="sortSelect" aria-label="Ordenar">
+          <option value="default">Padrão</option>
+          <option value="price-asc">Preço ↑</option>
+          <option value="price-desc">Preço ↓</option>
+          <option value="rating-desc">Avaliação</option>
+        </select>
+
+        <button id="openCart" class="btn">Carrinho <span id="cartCount" style="margin-left:8px" class="badge">0</span></button>
+      </div>
+    </header>
+
+    <main>
+      <div id="status" class="small" style="margin-top:12px">Carregando produtos...</div>
+
+      <section id="products" class="grid" aria-live="polite"></section>
+
+      <div id="emptyState" style="display:none;margin-top:20px;text-align:center;color:var(--muted)">Nenhum produto encontrado.</div>
+    </main>
+
+    <footer>
+      <div>Dados fornecidos por <a href="https://fakestoreapi.com" target="_blank">FakeStore API</a> • Projeto de estudo</div>
+    </footer>
+  </div>
+
+  <!-- Cart Sidebar (hidden) -->
+  <aside id="cart" class="sidebar" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong>Carrinho</strong>
+      <button id="closeCart" class="btn ghost">Fechar</button>
+    </div>
+    <div id="cartItems" style="max-height:420px;overflow:auto;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+      <div>
+        <div class="small">Subtotal</div>
+        <div id="subtotal" style="font-weight:700">R$ 0.00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button id="checkout" class="btn">Finalizar compra</button>
+        <button id="clearCart" class="btn ghost">Limpar carrinho</button>
+      </div>
+    </div>
+  </aside>
+
+  <template id="productTpl">
+    <article class="card">
+      <div class="thumb"><img alt="produto" /></div>
+      <div class="title"></div>
+      <div class="desc"></div>
+      <div class="meta">
+        <div>
+          <div class="price"></div>
+          <div class="small rating"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn add">Adicionar</button>
+          <button class="btn ghost view">Ver</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+  // LojaFake - Vanilla JS
+  const API = 'https://fakestoreapi.com/products';
+  const productsEl = document.getElementById('products');
+  const statusEl = document.getElementById('status');
+  const qEl = document.getElementById('q');
+  const categorySelect = document.getElementById('categorySelect');
+  const sortSelect = document.getElementById('sortSelect');
+  const cartBtn = document.getElementById('openCart');
+  const cartEl = document.getElementById('cart');
+  const cartItemsEl = document.getElementById('cartItems');
+  const closeCartBtn = document.getElementById('closeCart');
+  const cartCountEl = document.getElementById('cartCount');
+  const subtotalEl = document.getElementById('subtotal');
+  const clearCartBtn = document.getElementById('clearCart');
+  const checkoutBtn = document.getElementById('checkout');
+  const emptyState = document.getElementById('emptyState');
+  const tpl = document.getElementById('productTpl');
+
+  let products = [];
+  let categories = [];
+  let cart = JSON.parse(localStorage.getItem('loja_cart') || '[]');
+
+  function formatBR(value){
+    return 'R$ ' + Number(value).toFixed(2).replace('.',',');
+  }
+
+  function setStatus(text){ statusEl.textContent = text }
+
+  async function loadProducts(){
+    try{
+      setStatus('Carregando produtos...')
+      const res = await fetch(API);
+      if(!res.ok) throw new Error('Erro ao carregar API')
+      products = await res.json();
+      categories = Array.from(new Set(products.map(p=>p.category)));
+      categories.unshift('all')
+      renderCategoryOptions();
+      renderProducts();
+      setStatus('');
+    }catch(err){
+      setStatus('Erro: ' + err.message)
+    }
+  }
+
+  function renderCategoryOptions(){
+    categorySelect.innerHTML = '';
+    categories.forEach(c => {
+      const opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+      categorySelect.appendChild(opt)
+    })
+  }
+
+  function filterAndSort(){
+    const q = qEl.value.trim().toLowerCase();
+    const cat = categorySelect.value;
+    const sort = sortSelect.value;
+    let list = products.slice();
+    if(cat !== 'all') list = list.filter(p => p.category === cat);
+    if(q) list = list.filter(p => (p.title + p.description).toLowerCase().includes(q));
+    if(sort === 'price-asc') list.sort((a,b)=>a.price-b.price);
+    if(sort === 'price-desc') list.sort((a,b)=>b.price-a.price);
+    if(sort === 'rating-desc') list.sort((a,b)=> (b.rating?.rate||0) - (a.rating?.rate||0));
+    return list;
+  }
+
+  function renderProducts(){
+    const list = filterAndSort();
+    productsEl.innerHTML = '';
+    if(list.length === 0){ emptyState.style.display='block'; return } else emptyState.style.display='none';
+
+    const frag = document.createDocumentFragment();
+    list.forEach(p => {
+      const node = tpl.content.cloneNode(true);
+      node.querySelector('img').src = p.image;
+      node.querySelector('img').alt = p.title;
+      node.querySelector('.title').textContent = p.title;
+      node.querySelector('.desc').textContent = p.description.slice(0,120) + (p.description.length>120? '...':'');
+      node.querySelector('.price').textContent = formatBR(p.price);
+      node.querySelector('.rating').textContent = `Avaliação: ${p.rating?.rate ?? '—'} (${p.rating?.count ?? 0})`;
+      node.querySelector('.add').addEventListener('click', ()=> { addToCart(p.id); });
+      node.querySelector('.view').addEventListener('click', ()=> { openProductModal(p); });
+      frag.appendChild(node);
+    })
+    productsEl.appendChild(frag);
+  }
+
+  function saveCart(){
+    localStorage.setItem('loja_cart', JSON.stringify(cart));
+    updateCartUI();
+  }
+
+  function updateCartUI(){
+    cartCountEl.textContent = cart.reduce((s,i)=>s+i.qty,0) || 0;
+    cartItemsEl.innerHTML = '';
+    if(cart.length === 0){ cartItemsEl.innerHTML = '<div class="small">Carrinho vazio</div>'; subtotalEl.textContent = formatBR(0); return }
+    cart.forEach(item => {
+      const div = document.createElement('div'); div.className = 'cart-item';
+      div.innerHTML = `\n        <img src="${item.image}" alt="${item.title}"/>\n        <div style=\"flex:1\">\n          <div style=\"font-weight:600;font-size:14px\">${item.title}</div>\n          <div class=\"small\">${formatBR(item.price)} • x<input type=number min=1 value=${item.qty} data-id=${item.id} style=\"width:56px;margin-left:8px;padding:4px;border-radius:6px;border:1px solid #e6e9ee\"/> </div>\n        </div>\n        <div>\n          <div style=\"display:flex;flex-direction:column;gap:6px\">\n            <button data-remove=${item.id} class=\"btn ghost\">Remover</button>\n          </div>\n        </div>\n      `;
+      cartItemsEl.appendChild(div);
+    })
+    // eventos inputs
+    cartItemsEl.querySelectorAll('input[type=number]').forEach(inp => {
+      inp.addEventListener('change', e => {
+        const id = Number(e.target.dataset.id); const val = Number(e.target.value) || 1;
+        changeQty(id, val);
+      })
+    })
+    cartItemsEl.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', e => {
+      const id = Number(e.target.getAttribute('data-remove')); removeFromCart(id);
+    }))
+
+    const subtotal = cart.reduce((s,i)=>s + i.price * i.qty, 0);
+    subtotalEl.textContent = formatBR(subtotal);
+  }
+
+  function addToCart(id, qty=1){
+    const prod = products.find(p=>p.id===id); if(!prod) return;
+    const exist = cart.find(i=>i.id===id);
+    if(exist) exist.qty += qty; else cart.push({id:prod.id,title:prod.title,image:prod.image,price:prod.price,qty});
+    saveCart();
+  }
+
+  function changeQty(id, qty){ cart = cart.map(i=> i.id===id?{...i,qty:qty}:i).filter(i=>i.qty>0); saveCart(); }
+  function removeFromCart(id){ cart = cart.filter(i=>i.id!==id); saveCart(); }
+  function clearCart(){ cart = []; saveCart(); }
+
+  // product modal (simple alert for estudo)
+  function openProductModal(p){
+    const msg = `\n${p.title}\n\n${p.description}\n\nPreço: ${formatBR(p.price)}\nAvaliação: ${p.rating?.rate ?? '—'} (${p.rating?.count ?? 0})`;
+    if(confirm(msg + '\n\nAdicionar ao carrinho?')) addToCart(p.id);
+  }
+
+  // eventos UI
+  qEl.addEventListener('input', () => renderProducts());
+  categorySelect.addEventListener('change', () => renderProducts());
+  sortSelect.addEventListener('change', () => renderProducts());
+  cartBtn.addEventListener('click', () => { cartEl.style.display='block'; updateCartUI(); });
+  closeCartBtn.addEventListener('click', ()=> cartEl.style.display='none');
+  clearCartBtn.addEventListener('click', ()=>{ if(confirm('Limpar carrinho?')) clearCart(); });
+  checkoutBtn.addEventListener('click', ()=>{ if(cart.length===0){ alert('Carrinho vazio'); return } alert('Checkout simulado. Obrigado!'); clearCart(); cartEl.style.display='none'; });
+
+  // inicialização
+  (async function init(){
+    updateCartUI();
+    await loadProducts();
+  })()
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+/*
+  CSS para a Calculadora
+  - Estilos modernos com variáveis para cores.
+  - Layout compacto e centralizado.
+  - Efeitos de sombra e transições suaves.
+*/
+
+:root {
+  /* Variáveis de cores */
+  --cor-fundo: #282c34;
+  --cor-painel: #3a414e;
+  --cor-borda: #4f5b66;
+  --cor-texto: #e6e6e6;
+  --cor-hover: #4e5663;
+  --cor-operadores: #61afef;
+  --cor-operadores-hover: #72bbfd;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: var(--cor-fundo);
+  font-family: 'Arial', sans-serif;
+  color: var(--cor-texto);
+}
+
+#painel {
+  background-color: var(--cor-painel);
+  color: var(--cor-texto);
+  width: 320px;
+  height: 60px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 2.5em;
+  border-radius: 8px 8px 0 0;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#resto {
+  display: flex;
+  height: auto;
+  width: 320px;
+  background-color: var(--cor-painel);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+#numeros {
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: 1;
+  max-width: 240px;
+}
+
+#operacoes {
+  display: flex;
+  flex-direction: column;
+  width: 80px;
+}
+
+.num, #operacoes button {
+  background-color: var(--cor-painel);
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  height: 80px;
+  width: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  border-radius: 0;
+  outline: none;
+}
+
+.num:hover, #operacoes button:hover {
+  background-color: var(--cor-hover);
+  transform: scale(1.05);
+}
+
+#operacoes button {
+  background-color: var(--cor-operadores);
+  color: #fff;
+}
+
+#operacoes button:hover {
+  background-color: var(--cor-operadores-hover);
+}
+
+#igual {
+  background-color: #e6b22c;
+  color: #fff;
+  font-size: 2em;
+}
+
+#igual:hover {
+  background-color: #ffc433;
+  transform: scale(1.05);
+}

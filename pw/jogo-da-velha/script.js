@@ -44,7 +44,7 @@ function Vitoria() {
         }
     }
 
-//verifica empate
+
     if (vezes == 9) {
         alert('enpate!')
         reiniciar.disabled = true

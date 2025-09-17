@@ -1,51 +1,52 @@
-const adress_imgs = ['imgs/img1.jpg', 'imgs/img2.jpg', 'imgs/img3.jpg', 'imgs/img4.jpg', 'imgs/img5.jpg']
-const back = document.querySelector("#back")
-const to_go = document.querySelector("#to_go")
-const mark = document.querySelector("#mark")
-const painel_imagens = document.getElementById("painel")
-let count = 0
-painel_imagens.src = adress_imgs[0]
-back.addEventListener('click', () =>{
-    if(count > 0){
-        count--
-        painel_imagens.src = adress_imgs[count]
-    }
+const mark = document.getElementById("mark")
+const back = document.getElementById('back')
+const to_go = document.getElementById("to_go")
+const imagem = document.getElementById("painel")
+
+let contador = 0
+let anterior = null
+const adress_images = ['imgs/img1.jpg', 'imgs/img2.jpg', 'imgs/img3.jpg', 'imgs/img4.jpg', 'imgs/img5.jpg']
+
+// 1-criar função para atualizar uma imagem. 2-criar o sistema de 'points'. 3-criar o sistema de 'focu'.
+
+function atualizar(){
+    imagem.src = adress_images[contador]
+}
+function atualizar_point(){
+    if (anterior){anterior.classList.remove("focu")}
+    const pointi = document.getElementById(`point_${contador}`)
+    pointi.classList.add("focu")
+    anterior = pointi
+}
+
+atualizar()
+to_go.addEventListener("click", ()=>{
+    if(contador < adress_images.length - 1){
+        contador++
+    } else {contador = 0;}
+    atualizar()
+    atualizar_point()
 })
-to_go.addEventListener('click', () =>{
-    if(count < (adress_imgs.length -1)){
-        count++
-        painel_imagens.src = adress_imgs[count]
-        
-    }
+back.addEventListener("click", () =>{
+    if(contador > 0){
+        contador--
+    } else {contador = adress_images.length - 1;}
+    atualizar()
+    atualizar_point()
 })
 
-// Declara a variável aqui no escopo global para que ela seja acessível
-let de_antes = null;
-
-adress_imgs.forEach((_, indice)=> {
-    const point = document.createElement("div")
+//faz os 'points'
+for(let i in adress_images){
+    const point = document.createElement('div')
     mark.appendChild(point)
-    point.id = `point_${indice}`
+    point.id = `point_${i}`
+
+    if(i == 0) {point.classList.add("focu"); anterior = point}
     point.classList.add("points")
 
-    // Adiciona a classe 'focu' na primeira bolinha, pois a imagem inicial é a primeira.
-    if (indice === 0) {
-        point.classList.add("focu");
-        de_antes = point; // Salva a primeira bolinha como a inicial
-    }
-
-    point.addEventListener("click", ()=>{
-        // Verifica se 'de_antes' existe e remove a classe 'focu' dele
-        if (de_antes) {
-            de_antes.classList.remove("focu");
-        }
-        
-        painel_imagens.src = adress_imgs[indice];
-        count = indice;
-        
-        // Adiciona a classe 'focu' ao elemento clicado
-        point.classList.add("focu");
-        // E atualiza 'de_antes' para ser o elemento clicado agora
-        de_antes = point;
+    point.addEventListener('click', ()=>{
+        contador = Number(i)
+        atualizar()
+        atualizar_point()   
     })
-});
+}
